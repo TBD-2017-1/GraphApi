@@ -1,0 +1,49 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.0'
+	}
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+sourceCompatibility = '1.8'
+
+version = '1.0'
+
+libsDirName = '../lib'
+
+jar {
+	doFirst {
+		from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
+	}
+	manifest {
+		attributes(	"Implementation-Title": "graph-api",
+					"Implementation-Version": version,
+					"Main-Class": "Neo4jAPI.Neo4jClass"
+		)
+	}
+}
+
+shadowJar{
+	classifier = null
+}
+
+repositories {
+    mavenCentral()
+    flatDir{
+        dirs 'lib'
+    }
+}
+
+dependencies {
+    compile name: 'neo4j-java-driver-1.0.6'
+    compile name: 'neo4j-java-driver-1.0.6-javadoc'
+    compile name: 'neo4j-java-driver-1.0.6-sources'
+    compile name: 'neo4j-java-driver-1.0.6-tests'
+}
