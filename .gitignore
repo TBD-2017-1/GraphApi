@@ -1,3 +1,6 @@
+#Netbeans files
+.nb-gradle/
+
 # intelliJ IDEA configuration files
 .idea/
 
