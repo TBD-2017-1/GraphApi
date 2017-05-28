@@ -7,9 +7,13 @@ import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 
+import PoliTweetsCL.Core.Misc.Config;
+import PoliTweetsCL.Core.Model.Tweet;
+import java.util.HashMap;
+
 public class Neo4jClass {
 
-    Session session;
+    private Session session;
 
     //Default config -> username: neo4j - password: root
     public Neo4jClass(String username, String password){
@@ -30,14 +34,24 @@ public class Neo4jClass {
         //código acá
     }
 
+    public void mapDatabase(Tweet[] tweets, HashMap<String, String> users){
+        for (Map.Entry<String, String> entry : map.entrySet()){
+          String name = entry.getKey();
+          String account = entry.getValue();
+          //System.out.println(entry.getKey() + "/" + entry.getValue());
+        }
+        for(Tweet t : tweets){
+          if(t.getRetweetedStatus != null){
+
+          }
+        }
+    }
+
     public static void main(String[] args) {
 
         //Neo4jClass n4j = new Neo4jClass("neo4j", "root");
         Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "root" ) );
         Session session = driver.session();
-
-        session.run("match (a)-[r]->(b) delete r");
-        session.run("match (n) delete n");
 
         session.run("match (a)-[r]->(b) delete r");
         session.run("match (n) delete n");
