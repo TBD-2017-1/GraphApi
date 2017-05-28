@@ -9,16 +9,21 @@ import org.neo4j.driver.v1.StatementResult;
 
 import PoliTweetsCL.Core.Misc.Config;
 import PoliTweetsCL.Core.Model.Tweet;
-import java.util.HashMap;
+import PoliTweetsCL.Core.Model.User;
+import java.util.Map;
 
 public class Neo4jClass {
 
+    private Driver driver;
     private Session session;
 
     //Default config -> username: neo4j - password: root
-    public Neo4jClass(String username, String password){
-        Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( noe4j, mariobroos ) );
-        this.session = driver.session();
+    public Neo4jClass(){
+    }
+
+    public void openConnection(String username, String password){
+      this.driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( noe4j, mariobroos ) );
+      this.session = driver.session();
     }
 
     public void cleanDatabase(){
@@ -26,51 +31,53 @@ public class Neo4jClass {
         this.session.run("match (n) delete n");
     }
 
-    private void createNode(String name, String twitterAccount){
-        this.session.run( "CREATE (P:Person {name:'" + name + "', account:'"+twitterAccount+"'})");
+    public void closeConnection(){
+        this.session.close();
+        this.driver.close();
+    }
+
+    private void createNode(String type, String name, String twitterAccount){
+        this.session.run( "CREATE (a:"+type+" {name:'" + name + "', account:'"+twitterAccount+"'})");
     }
 
     private void createRelation(String nodoOrigen, String nodoDestino){
-      this.session.run("match (a:Person) where a.name='"+ nodoOrigen +"' "
+        this.session.run("match (a:Person) where a.name='"+ nodoOrigen +"' "
               + "  match (b:Person) where b.name='"+ nodoDestino +"' "
               + "  create (a)-[r:Retweet]->(b)");
     }
 
-    public void mapDatabase(Tweet[] tweets, HashMap<String, String> users){
-        for (Map.Entry<String, String> entry : map.entrySet()){
-          String name = entry.getKey();
-          String account = entry.getValue();
-          //System.out.println(entry.getKey() + "/" + entry.getValue());
+    //Este procedimiento debe realizarse 3 veces, para conglomerados, partidos, y politicos.
+    public void mapDatabase(Tweet[] tweets, Map<String, String> users, String entidad){
+        StatementResult result;
+
+        for (Map.Entry<String, String> entry : users.entrySet()){
+          this.createNode(entidad, entry.getKey(), entry.getValue());
         }
+
         for(Tweet t : tweets){
           if(t.getRetweetedStatus != null){
-
+            //Verificar si el retweet fué a una de las entidades del map.
+            //Si lo es y no existe el nodo, crearlo, si no, hacer match y crear la relación
           }
         }
     }
 
     public static void main(String[] args) {
 
-        Neo4jClass n4j = new Neo4jClass("neo4j", "mariobroos");
-        //Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "mariobroos" ) );
-        //Session session = driver.session();
+        Neo4jClass n4j = new Neo4jClass();
+        n4j.openConnection("neo4j", "root");
+        n4j.cleanDatabase();
+        n4j.mapDatabase();
+        n4j.closeConnection();
+        /*Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "mariobroos" ) );
+        Session session = driver.session();
 
         session.run("match (a)-[r]->(b) delete r");
         session.run("match (n) delete n");
 
-<<<<<<< HEAD
         session.run( "CREATE (a:Person {name:'Arthur', title:'King'})");
         session.run( "CREATE (a:Person {name:'Lancelot', title:'Sir'})");
         session.run( "CREATE (a:Person {name:'Merlin', title:'Wizard'})");
-=======
-        n4j.createNode("Arthur", "King");
-        n4j.createNode("Lancelot", "Sir");
-        n4j.createNode("Merlin", "Wizard");
-
-        //session.run( "CREATE (a:Person {name:'Arthur', title:'King'})");
-        //session.run( "CREATE (a:Person {name:'Lancelot', title:'Sir'})");
-        //session.run( "CREATE (a:Person {name:'Merlin', title:'Wizard'})");
->>>>>>> a74d04c9237a77f1cb3a926a19d2fb5af23407db
 
 
         StatementResult result = session.run( "MATCH (a:Person) return a.name as name, a.title as title");
@@ -143,6 +150,6 @@ public class Neo4jClass {
 
 
         session.close();
-        driver.close();
+        driver.close();*/
     }
 }
