@@ -13,7 +13,7 @@ public class Neo4jClass {
 
     //Default config -> username: neo4j - password: root
     public Neo4jClass(String username, String password){
-        Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( username, password ) );
+        Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( noe4j, mariobroos ) );
         this.session = driver.session();
     }
 
@@ -23,28 +23,31 @@ public class Neo4jClass {
     }
 
     private void createNode(String name, String twitterAccount){
-        //código acá
+        this.session.run( "CREATE (P:Person {name:'" + name + "', account:'"+twitterAccount+"'})");
     }
 
-    private void createRelation(String label){
-        //código acá
+    private void createRelation(String nodoOrigen, String nodoDestino){
+      this.session.run("match (a:Person) where a.name='"+ nodoOrigen +"' "
+              + "  match (b:Person) where b.name='"+ nodoDestino +"' "
+              + "  create (a)-[r:Retweet]->(b)");
     }
 
     public static void main(String[] args) {
 
-        //Neo4jClass n4j = new Neo4jClass("neo4j", "root");
-        Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "root" ) );
-        Session session = driver.session();
+        Neo4jClass n4j = new Neo4jClass("neo4j", "mariobroos");
+        //Driver driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "mariobroos" ) );
+        //Session session = driver.session();
 
         session.run("match (a)-[r]->(b) delete r");
         session.run("match (n) delete n");
 
-        session.run("match (a)-[r]->(b) delete r");
-        session.run("match (n) delete n");
+        n4j.createNode("Arthur", "King");
+        n4j.createNode("Lancelot", "Sir");
+        n4j.createNode("Merlin", "Wizard");
 
-        session.run( "CREATE (a:Person {name:'Arthur', title:'King'})");
-        session.run( "CREATE (a:Person {name:'Lancelot', title:'Sir'})");
-        session.run( "CREATE (a:Person {name:'Merlin', title:'Wizard'})");
+        //session.run( "CREATE (a:Person {name:'Arthur', title:'King'})");
+        //session.run( "CREATE (a:Person {name:'Lancelot', title:'Sir'})");
+        //session.run( "CREATE (a:Person {name:'Merlin', title:'Wizard'})");
 
 
         StatementResult result = session.run( "MATCH (a:Person) return a.name as name, a.title as title");
