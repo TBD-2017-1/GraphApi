@@ -40,10 +40,19 @@ public class Neo4jClass {
         this.session.run( "CREATE (a:"+type+" {name:'" + name + "', account:'"+twitterAccount+"'})");
     }
 
-    private void createRelation(String nodoOrigen, String nodoDestino){
-        this.session.run("match (a:Person) where a.name='"+ nodoOrigen +"' "
-              + "  match (b:Person) where b.name='"+ nodoDestino +"' "
-              + "  create (a)-[r:Retweet]->(b)");
+    private void createRelation(String typeOrigen, String nodoOrigen, String typeDestino, String nodoDestino){
+        this.session.run("match (a:"+typeOrigen+") where a.name='"+ nodoOrigen +"' "
+                        + "match (b:"+typeDestino+") where b.name='"+ nodoDestino +"' "
+                        + "create (a)-[r:Retweet]->(b)");
+    }
+
+    private boolean existNode(String type, String name){
+        StatementResult result;
+        result = this.session.run("match (a:"+type+") where a.name="+name+" return a");
+        if(result.hasNext()){
+          return true;
+        }
+        return false;
     }
 
     //Este procedimiento debe realizarse 3 veces, para conglomerados, partidos, y politicos.
@@ -55,9 +64,15 @@ public class Neo4jClass {
         }
 
         for(Tweet t : tweets){
-          if(t.getRetweetedStatus != null){
-            //Verificar si el retweet fué a una de las entidades del map.
-            //Si lo es y no existe el nodo, crearlo, si no, hacer match y crear la relación
+          if(t.getRetweetedStatus() != null){
+            String twitter = t.getUser().getScreenName();
+            String retweeted = t.getRetweetedStatus().getUser().getScreenName();
+            if(Map.containsValue(retweeted)){
+              if(!existNode("Person", twitter)){
+                this.createNode("Person", twitter, twitter);
+              }
+              this.createRelation("Person", twitter, entidad, retweeted);
+            }
           }
         }
     }
