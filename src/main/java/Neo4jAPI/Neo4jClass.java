@@ -37,16 +37,54 @@ public class Neo4jClass {
     }
 
     private void createNode(String type, String name, String twitterAccount){
-        this.session.run( "CREATE (a:"+type+" {name:'" + name + "', account:'"+twitterAccount+"'})");
+        if(type.equals("User")){
+          this.session.run( "CREATE (a:"+type+" {account:'@"+twitterAccount+"'})");
+        }
+        else{
+          this.session.run( "CREATE (a:"+type+" {name:'"+name+"', account:'@"+twitterAccount+"'})");
+        }
     }
 
-    private void createRelation(String typeOrigen, String nodoOrigen, String typeDestino, String nodoDestino){
-        this.session.run("match (a:"+typeOrigen+") where a.name='"+ nodoOrigen +"' "
-                        + "match (b:"+typeDestino+") where b.name='"+ nodoDestino +"' "
-                        + "create (a)-[r:Retweet]->(b)");
+    private void createTweetRelation(String nodoOrigen, String nodoDestino){
+        this.session.run("match (a) where a.name='"+ nodoOrigen +"' "
+                        + "match (b) where b.name='"+ nodoDestino +"' "
+                        + "create (a)-[r:tweet{retweet:0, menciones:0}]->(b)");
+    }
+
+    private void addRetweet(String nodoOrigen, String nodoDestino){
+        StatementResult result;
+        result = this.session.run("match (a)-[r:tweet]->(b)"
+                                +"where a.name="+nodoOrigen+" and b.name="+nodoDestino+""
+                                +"return r.retweet");
+        int retweet = Integer.ParseInt(result.next());
+        retweet++;
+        this.session.run("match (a)-[r:tweet]->(b)"
+                        +"where a.name="+nodoOrigen+" and b.name="+nodoDestino+""
+                        +"set r.retweet="+retweet);
+    }
+
+    private void addMencion(String nodoOrigen, String nodoDestino){
+        StatementResult result;
+        result = this.session.run("match (a)-[r:tweet]->(b)"
+                                +"where a.name="+nodoOrigen+" and b.name="+nodoDestino+""
+                                +"return r.retweet");
+        int menciones = Integer.ParseInt(result.next());
+        menciones++;
+        this.session.run("match (a)-[r:tweet]->(b)"
+                        +"where a.name="+nodoOrigen+" and b.name="+nodoDestino+""
+                        +"set r.retweet="+menciones);
     }
 
     private boolean existNode(String type, String name){
+        StatementResult result;
+        result = this.session.run("match (a:"+type+") where a.name="+name+" return a");
+        if(result.hasNext()){
+          return true;
+        }
+        return false;
+    }
+
+    private boolean existRelation(String origin, String name){
         StatementResult result;
         result = this.session.run("match (a:"+type+") where a.name="+name+" return a");
         if(result.hasNext()){
