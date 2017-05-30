@@ -23,7 +23,7 @@ public class Neo4jClass {
 
     public void openConnection(String username, String password){
       this.driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( noe4j, mariobroos ) );
-      this.session = driver.session();
+      this.session = this.driver.session();
     }
 
     public void cleanDatabase(){
@@ -68,10 +68,10 @@ public class Neo4jClass {
             String twitter = t.getUser().getScreenName();
             String retweeted = t.getRetweetedStatus().getUser().getScreenName();
             if(Map.containsValue(retweeted)){
-              if(!existNode("Person", twitter)){
-                this.createNode("Person", twitter, twitter);
+              if(!existNode("User", twitter)){
+                this.createNode("User", twitter, twitter);
               }
-              this.createRelation("Person", twitter, entidad, retweeted);
+              this.createRelation("User", twitter, entidad, retweeted);
             }
           }
         }
